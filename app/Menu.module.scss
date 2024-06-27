@@ -1,0 +1,41 @@
+.Menu {
+  &.wrapper {
+    // Box
+    position: absolute;
+    width: 100%;
+    height: 140px;
+    bottom: 0;
+  }
+
+  .menu {
+    // Box
+    display: flex;
+    height: 100%;
+    width: max-content;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 8px;
+
+    // Layout
+    flex-direction: row;
+    gap: 8px;
+
+    // Style
+    border: 2px solid #555555;
+    border-bottom: none;
+    border-radius: 16px 16px 0 0;
+    background-color: #ffffff;
+  }
+}
+
+.MenuItem {
+  // Box
+  width: 128px;
+
+  // Style
+  border: 1px solid #c7c7c7;
+  border-radius: 8px;
+
+  // Interaction
+  cursor: pointer;
+}

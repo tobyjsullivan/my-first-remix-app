@@ -1,5 +1,8 @@
 import { Links, Meta, Outlet, Scripts } from '@remix-run/react'
 
+import './reset.scss'
+import { Editor } from './Editor'
+
 export default function App() {
   return (
     <html>
@@ -9,7 +12,7 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <h1>Hello world!</h1>
+        <Editor />
         <Outlet />
 
         <Scripts />
