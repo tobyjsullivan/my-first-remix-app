@@ -1,15 +1,21 @@
-import { DesignCoord } from '../design/DesignState'
+import React from 'react'
+import XYCoord from '../design/XYCoord'
 import { selectElementById } from '../design/selectors'
 import useDesignState from '../design/useDesignState'
+import useDrag from '../drag-drop/useDrag'
+
 import styles from './FrameElement.module.scss'
 
 interface DivElementProps {
-  position: DesignCoord
+  elementId: string
+  position: XYCoord
 }
 
-function DivElement({ position }: DivElementProps) {
-  const { top, left } = position
-  return <div className={styles.DivElement} style={{ top, left }}></div>
+function DivElement({ elementId, position }: DivElementProps) {
+  const [dragStartRef] = useDrag(elementId, {})
+
+  const { y: top, x: left } = position
+  return <div ref={dragStartRef} className={styles.DivElement} style={{ top, left }}></div>
 }
 
 interface Props {
@@ -27,7 +33,7 @@ export default function FrameElement({ elementId }: Props) {
   const { elementType, position } = element
   switch (elementType) {
     case 'div':
-      return <DivElement position={position} />
+      return <DivElement elementId={elementId} position={position} />
     default:
       throw new Error(`Unknown element type: ${elementType} (${elementId})`)
   }

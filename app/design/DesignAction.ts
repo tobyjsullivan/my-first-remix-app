@@ -1,14 +1,29 @@
-import { DesignCoord } from './DesignState'
+import XYCoord from './XYCoord'
 
 export interface AppendElementAction {
   type: 'design/appendElement'
   payload: {
-    elementId: string
     elementType: 'div'
-    position: DesignCoord
+    position: XYCoord
   }
 }
 
-type DesignAction = AppendElementAction
+export interface MoveElementAction {
+  type: 'design/moveElement'
+  payload: {
+    elementId: string
+    position: XYCoord
+  }
+}
+
+export interface CloneElementAction {
+  type: 'design/cloneElement'
+  payload: {
+    sourceElementId: string
+    position: XYCoord
+  }
+}
+
+type DesignAction = AppendElementAction | MoveElementAction | CloneElementAction
 
 export default DesignAction

@@ -23,7 +23,7 @@ export default function Menu() {
   const handleInsertDivClicked = () => {
     dispatch({
       type: 'design/appendElement',
-      payload: { elementId: uuid(), elementType: 'div', position: { top: 40, left: 40 } },
+      payload: { elementId: uuid(), elementType: 'div', position: { y: 40, x: 40 } },
     })
   }
 

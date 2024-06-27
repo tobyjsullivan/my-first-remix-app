@@ -25,6 +25,9 @@
     border-bottom: none;
     border-radius: 16px 16px 0 0;
     background-color: #ffffff;
+
+    // Interaction
+    pointer-events: all;
   }
 }
 
