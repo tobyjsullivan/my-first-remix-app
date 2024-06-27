@@ -7,7 +7,8 @@
   "scripts": {
     "build": "remix vite:build",
     "start": "cross-env NODE_ENV=production node ./server.js",
-    "dev": "node --inspect ./server.js"
+    "dev": "node --inspect ./server.js",
+    "format": "prettier -w ./"
   },
   "keywords": [],
   "author": "",
