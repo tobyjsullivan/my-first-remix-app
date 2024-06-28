@@ -11,11 +11,8 @@ export function selectElementById(state: DesignState, elementId: string): Design
 
 function elementOverlapsPoint(element: DesignElement, point: XYCoord): boolean {
   const {
-    position: { x: left, y: top },
+    layout: { left, top, width, height },
   } = element
-  // TODO: Read width and height from design element once those properties are added
-  const width = 250
-  const height = 250
 
   const { x: pointerX, y: pointerY } = point
 

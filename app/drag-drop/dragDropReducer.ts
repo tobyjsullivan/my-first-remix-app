@@ -42,7 +42,12 @@ function applyMouseDown(state: DragDropState, { payload }: MouseDownAction): Dra
 
     clickedSelection = clickedElement
   }
-  const { elementId: draggingElementId, position: elementPosition } = clickedSelection
+  const { elementId: draggingElementId, layout: elementLayout } = clickedSelection
+
+  const elementPosition: XYCoord = {
+    x: elementLayout.left,
+    y: elementLayout.top,
+  }
 
   const relativePointerOffset: XYCoord = {
     x: pointerOffset.x - elementPosition.x,
@@ -121,8 +126,6 @@ function applyClick(state: DragDropState): DragDropState {
 }
 
 export default function dragDropReducer(state: DragDropState, action: DragDropAction): DragDropState {
-  console.log(`[dragDropReducer] action type:`, action.type)
-
   const { type: actionType } = action
   switch (actionType) {
     case 'dragDrop/updateDesignState':

@@ -4,7 +4,7 @@ import DesignAction, { AppendElementAction, CloneElementAction, MoveElementActio
 import DesignState from './DesignState'
 
 function applyAppendElement(state: DesignState, { payload }: AppendElementAction): DesignState {
-  const { elementType, position } = payload
+  const { elementType, layout } = payload
 
   const elementId = uuid()
 
@@ -12,7 +12,7 @@ function applyAppendElement(state: DesignState, { payload }: AppendElementAction
     draft.elements.push({
       elementId,
       elementType,
-      position,
+      layout,
     })
   })
 }
@@ -24,7 +24,8 @@ function applyMoveElement(state: DesignState, { payload }: MoveElementAction): D
     draft.elements
       .filter(({ elementId: candidateId }) => candidateId === elementId)
       .forEach((element) => {
-        element.position = position
+        element.layout.top = position.y
+        element.layout.left = position.x
       })
   })
 }
@@ -39,13 +40,14 @@ function applyCloneElement(state: DesignState, { payload }: CloneElementAction):
     throw new Error(`Cannot find clone source element. (${sourceElementId})`)
   }
 
-  const { elementType } = sourceElement
+  const element = produce(sourceElement, (draft) => {
+    draft.elementId = elementId
+    draft.layout.left = position.x
+    draft.layout.top = position.y
+  })
+
   return produce(state, (draft) => {
-    draft.elements.push({
-      elementId,
-      elementType,
-      position,
-    })
+    draft.elements.push(element)
   })
 }
 

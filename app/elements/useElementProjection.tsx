@@ -1,4 +1,3 @@
-import XYCoord from '../common/XYCoord'
 import { selectElementById } from '../design/selectors'
 import useDesignState from '../design/useDesignState'
 import { DesignElement } from '../design/DesignState'
@@ -26,12 +25,8 @@ export default function useElementProjection(elementId: string): DesignElement |
   const pointerDeltaX = currentPointerOffset.x - (initialElementOffset.x + initialPointerOffset.x)
   const pointerDeltaY = currentPointerOffset.y - (initialElementOffset.y + initialPointerOffset.y)
 
-  const projectedPosition: XYCoord = {
-    x: element.position.x + pointerDeltaX,
-    y: element.position.y + pointerDeltaY,
-  }
-
   return produce(element, (draft) => {
-    draft.position = projectedPosition
+    draft.layout.left += pointerDeltaX
+    draft.layout.top += pointerDeltaY
   })
 }

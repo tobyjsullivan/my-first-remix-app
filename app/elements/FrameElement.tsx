@@ -1,24 +1,31 @@
 import React from 'react'
-import XYCoord from '../common/XYCoord'
 
-import styles from './FrameElement.module.scss'
 import classNames from 'classnames'
 import useSelectionState from '../selection/useSelectionState'
 import { isElementSelected } from '../selection/selectors'
 import useElementProjection from './useElementProjection'
+import { ElementLayout } from '../design/DesignState'
+
+import styles from './FrameElement.module.scss'
 
 interface DivElementProps {
   elementId: string
-  position: XYCoord
+  layout: ElementLayout
 }
 
-function DivElement({ elementId, position }: DivElementProps) {
+function DivElement({ elementId, layout }: DivElementProps) {
   const selectionState = useSelectionState()
 
   const isSelected = isElementSelected(selectionState, elementId)
 
-  const { y: top, x: left } = position
-  return <div className={classNames(styles.DivElement)} style={{ top, left }} data-selected={isSelected}></div>
+  const { left, top, width, height } = layout
+  return (
+    <div
+      className={classNames(styles.DivElement)}
+      style={{ top, left, width, height }}
+      data-selected={isSelected}
+    ></div>
+  )
 }
 
 interface Props {
@@ -31,10 +38,10 @@ export default function FrameElement({ elementId }: Props) {
     return null
   }
 
-  const { elementType, position } = element
+  const { elementType, layout } = element
   switch (elementType) {
     case 'div':
-      return <DivElement elementId={elementId} position={position} />
+      return <DivElement elementId={elementId} layout={layout} />
     default:
       throw new Error(`Unknown element type: ${elementType} (${elementId})`)
   }

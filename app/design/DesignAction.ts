@@ -1,10 +1,11 @@
 import XYCoord from '../common/XYCoord'
+import { ElementLayout } from './DesignState'
 
 export interface AppendElementAction {
   type: 'design/appendElement'
   payload: {
     elementType: 'div'
-    position: XYCoord
+    layout: ElementLayout
   }
 }
 

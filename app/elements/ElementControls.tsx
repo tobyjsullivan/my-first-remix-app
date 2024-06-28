@@ -1,7 +1,7 @@
-import XYCoord from '../common/XYCoord'
 import useElementProjection from './useElementProjection'
 
 import styles from './ElementControls.module.scss'
+import { ElementLayout } from '../design/DesignState'
 
 interface SelectionBoxProps {
   left: number
@@ -15,14 +15,11 @@ function SelectionBox({ left, top, width, height }: SelectionBoxProps) {
 }
 
 interface DivElementControlsProps {
-  position: XYCoord
+  layout: ElementLayout
 }
 
-function DivElementControls({ position }: DivElementControlsProps) {
-  const { x: left, y: top } = position
-  // TODO: Read width and height from element state once they are available
-  const width = 250
-  const height = 250
+function DivElementControls({ layout }: DivElementControlsProps) {
+  const { top, left, width, height } = layout
 
   return <SelectionBox top={top} left={left} width={width} height={height} />
 }
@@ -37,10 +34,10 @@ export default function ElementControls({ elementId }: Props) {
     return null
   }
 
-  const { elementType, position } = element
+  const { elementType, layout } = element
   switch (elementType) {
     case 'div':
-      return <DivElementControls position={position} />
+      return <DivElementControls layout={layout} />
     default:
       throw new Error(`Unknown element type: ${elementType} (${elementId})`)
   }

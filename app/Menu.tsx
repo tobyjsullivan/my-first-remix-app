@@ -25,7 +25,15 @@ export default function Menu() {
 
     dispatch({
       type: 'design/appendElement',
-      payload: { elementType: 'div', position: { x, y } },
+      payload: {
+        elementType: 'div',
+        layout: {
+          left: x,
+          top: y,
+          width: 200,
+          height: 200,
+        },
+      },
     })
   }
 
