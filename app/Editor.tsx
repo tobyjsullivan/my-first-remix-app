@@ -6,18 +6,21 @@ import Menu from './Menu'
 import OverlayLayer from './OverlayLayer'
 import DesignProvider from './design/DesignProvider'
 import DragDropProvider from './drag-drop/DragDropProvider'
+import SelectionProvider from './selection/SelectionProvider'
 
 export function Editor() {
   return (
     <DesignProvider>
-      <DragDropProvider>
-        <div className={styles.Editor}>
-          <Frame />
-          <OverlayLayer>
-            <Menu />
-          </OverlayLayer>
-        </div>
-      </DragDropProvider>
+      <SelectionProvider>
+        <DragDropProvider>
+          <div className={styles.Editor}>
+            <Frame />
+            <OverlayLayer>
+              <Menu />
+            </OverlayLayer>
+          </div>
+        </DragDropProvider>
+      </SelectionProvider>
     </DesignProvider>
   )
 }

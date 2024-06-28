@@ -1,7 +1,6 @@
 import classNames from 'classnames'
 import styles from './Menu.module.scss'
 
-import { v4 as uuid } from 'uuid'
 import useDesignDispatch from './design/useDesignDispatch'
 
 interface MenuItemProps {
@@ -21,9 +20,12 @@ export default function Menu() {
   const dispatch = useDesignDispatch()
 
   const handleInsertDivClicked = () => {
+    const x = Math.round(Math.random() * 400)
+    const y = Math.round(Math.random() * 400)
+
     dispatch({
       type: 'design/appendElement',
-      payload: { elementId: uuid(), elementType: 'div', position: { y: 40, x: 40 } },
+      payload: { elementType: 'div', position: { x, y } },
     })
   }
 

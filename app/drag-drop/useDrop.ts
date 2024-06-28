@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import XYCoord from '../design/XYCoord'
+import XYCoord from '../common/XYCoord'
 import readEventPointerOffset from './readEventPointerOffset'
 import useDragDropState from './useDragDropState'
 import useDragDropDispatch from './useDragDropDispatch'

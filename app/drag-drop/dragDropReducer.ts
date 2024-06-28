@@ -1,84 +1,144 @@
-import { produce } from 'immer'
-import DragDropAction, { DragOverAction, DragStartAction, DropAction } from './DragDropAction'
+import { createDraft, produce } from 'immer'
+import DragDropAction, {
+  MouseDownAction,
+  MouseMoveAction,
+  UpdateDesignStateAction,
+  UpdateSelectionStateAction,
+} from './DragDropAction'
 import DragDropState from './DragDropState'
+import { selectElementsUnderPointer } from '../design/selectors'
+import { selectSelectedElementsUnderPointer } from '../selection/selectors'
+import XYCoord from '../common/XYCoord'
 
-const INACTIVE_STATE: DragDropState = { status: 'inactive' }
+function applyUpdateDesignState(state: DragDropState, { payload }: UpdateDesignStateAction): DragDropState {
+  const { designState } = payload
 
-function applyDragStart(state: DragDropState, { payload }: DragStartAction): DragDropState {
-  const { draggingElementId, initialElementOffset, initialPointerOffset, dropEffect } = payload
-
-  return {
-    status: 'dragging',
-    draggingElementId,
-    initialElementOffset,
-    initialPointerOffset,
-    dropEffect,
-    targetPointerOffset: undefined,
-  }
+  return produce(state, (draft) => {
+    draft.designState = createDraft(designState)
+  })
 }
 
-function applyDragOver(state: DragDropState, { payload }: DragOverAction): DragDropState {
-  const { dropEffect, targetPointerOffset } = payload
+function applyUpdateSelectionState(state: DragDropState, { payload }: UpdateSelectionStateAction): DragDropState {
+  const { selectionState } = payload
 
-  if (state.status !== 'dragging') {
+  return produce(state, (draft) => {
+    draft.selectionState = createDraft(selectionState)
+  })
+}
+
+function applyMouseDown(state: DragDropState, { payload }: MouseDownAction): DragDropState {
+  const { pointerOffset } = payload
+
+  const { designState, selectionState } = state
+  let [clickedSelection] = selectSelectedElementsUnderPointer(selectionState, pointerOffset)
+  if (clickedSelection === undefined) {
+    // Find element which was clicked
+    const [clickedElement] = selectElementsUnderPointer(designState, pointerOffset)
+    if (clickedElement === undefined) {
+      // Nothing dragged. No-op.
+      // TODO: Support click-and-drag to multi-select
+      return state
+    }
+
+    clickedSelection = clickedElement
+  }
+  const { elementId: draggingElementId, position: elementPosition } = clickedSelection
+
+  const relativePointerOffset: XYCoord = {
+    x: pointerOffset.x - elementPosition.x,
+    y: pointerOffset.y - elementPosition.y,
+  }
+
+  const currentPointerOffset: XYCoord = {
+    x: pointerOffset.x,
+    y: pointerOffset.y,
+  }
+
+  // Move currently selected element
+  return produce(state, (draft) => {
+    draft.draggingState = {
+      status: 'dragging',
+      draggingElementId,
+      initialElementOffset: elementPosition,
+      initialPointerOffset: relativePointerOffset,
+      dropEffect: 'move',
+      currentPointerOffset,
+    }
+  })
+}
+
+function applyMouseUp(state: DragDropState): DragDropState {
+  const { status } = state.draggingState
+  if (status !== 'dragging') {
     // No-op
     return state
   }
 
   return produce(state, (draft) => {
-    draft.dropEffect = dropEffect
-    draft.targetPointerOffset = targetPointerOffset
+    draft.draggingState = {
+      status: 'inactive',
+    }
   })
 }
 
-function applyDragEnd(state: DragDropState): DragDropState {
-  const { status } = state
-  if (status === 'inactive') {
-    // No-op
-    return state
-  }
-
-  return INACTIVE_STATE
+function applyMouseLeave(state: DragDropState): DragDropState {
+  // End any dragging
+  return produce(state, (draft) => {
+    draft.draggingState = { status: 'inactive' }
+  })
 }
 
-function applyDrop(state: DragDropState, { payload }: DropAction): DragDropState {
-  const { dropPointerOffset } = payload
-  const { status } = state
-  if (status === 'inactive') {
-    // No-op
-    return state
-  }
+function applyMouseMove(state: DragDropState, { payload }: MouseMoveAction): DragDropState {
+  const { pointerOffset } = payload
 
+  const { status } = state.draggingState
   if (status !== 'dragging') {
-    // Unexpected dragging state.
-    console.warn(`Unexpected dragging state on drop:`, status)
-    // Reset to inactive.
-    return INACTIVE_STATE
+    // No-op
+    return state
   }
 
-  const { draggingElementId, initialElementOffset, initialPointerOffset } = state
+  return produce(state, (draft) => {
+    if (draft.draggingState.status !== 'dragging') {
+      // No-op
+      return
+    }
 
-  return {
-    status: 'dropped',
-    draggingElementId,
-    initialElementOffset,
-    initialPointerOffset,
-    dropPointerOffset,
-  }
+    draft.draggingState.currentPointerOffset = pointerOffset
+  })
 }
+
+function applyClick(state: DragDropState): DragDropState {
+  const { status } = state.draggingState
+  if (status !== 'dragging') {
+    // No-op
+    return state
+  }
+
+  // Cancel drag
+  return produce(state, (draft) => {
+    draft.draggingState = { status: 'inactive' }
+  })
+}
+
 export default function dragDropReducer(state: DragDropState, action: DragDropAction): DragDropState {
   console.log(`[dragDropReducer] action type:`, action.type)
 
   const { type: actionType } = action
   switch (actionType) {
-    case 'dragDrop/dragStart':
-      return applyDragStart(state, action)
-    case 'dragDrop/dragOver':
-      return applyDragOver(state, action)
-    case 'dragDrop/dragEnd':
-      return applyDragEnd(state)
-    case 'dragDrop/drop':
-      return applyDrop(state, action)
+    case 'dragDrop/updateDesignState':
+      return applyUpdateDesignState(state, action)
+    case 'dragDrop/updateSelectionState':
+      return applyUpdateSelectionState(state, action)
+    case 'dragDrop/mouseDown':
+      return applyMouseDown(state, action)
+    case 'dragDrop/mouseMove':
+      return applyMouseMove(state, action)
+    case 'dragDrop/mouseUp':
+      return applyMouseUp(state)
+    case 'dragDrop/mouseLeave':
+      return applyMouseLeave(state)
+    case 'dragDrop/click':
+      return applyClick(state)
     default:
       throw new Error(`Unknown action type: ${actionType}`)
   }

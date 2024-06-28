@@ -1,35 +1,61 @@
-import XYCoord from '../design/XYCoord'
+import XYCoord from '../common/XYCoord'
+import DesignState from '../design/DesignState'
+import SelectionState from '../selection/SelectionState'
 
-export interface DragStartAction {
-  type: 'dragDrop/dragStart'
+export interface UpdateDesignStateAction {
+  type: 'dragDrop/updateDesignState'
   payload: {
-    draggingElementId: string
-    initialElementOffset: XYCoord
-    initialPointerOffset: XYCoord
-    dropEffect: 'move' | 'copy'
+    designState: DesignState
   }
 }
 
-export interface DragOverAction {
-  type: 'dragDrop/dragOver'
+export interface UpdateSelectionStateAction {
+  type: 'dragDrop/updateSelectionState'
   payload: {
-    dropEffect: 'move' | 'copy'
-    targetPointerOffset: XYCoord
+    selectionState: SelectionState
   }
 }
 
-export interface DragEndAction {
-  type: 'dragDrop/dragEnd'
+export interface MouseDownAction {
+  type: 'dragDrop/mouseDown'
+  payload: {
+    pointerOffset: XYCoord
+  }
+}
+
+export interface MouseMoveAction {
+  type: 'dragDrop/mouseMove'
+  payload: {
+    pointerOffset: XYCoord
+  }
+}
+
+export interface MouseUpAction {
+  type: 'dragDrop/mouseUp'
+  payload: {
+    pointerOffset: XYCoord
+  }
+}
+
+export interface MouseLeaveAction {
+  type: 'dragDrop/mouseLeave'
   payload: Record<string, never>
 }
 
-export interface DropAction {
-  type: 'dragDrop/drop'
+export interface ClickAction {
+  type: 'dragDrop/click'
   payload: {
-    dropPointerOffset: XYCoord
+    pointerOffset: XYCoord
   }
 }
 
-type DragDropAction = DragStartAction | DragOverAction | DragEndAction | DropAction
+type DragDropAction =
+  | UpdateDesignStateAction
+  | UpdateSelectionStateAction
+  | MouseDownAction
+  | MouseMoveAction
+  | MouseUpAction
+  | MouseLeaveAction
+  | ClickAction
 
 export default DragDropAction

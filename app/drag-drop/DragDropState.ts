@@ -1,30 +1,32 @@
-import XYCoord from '../design/XYCoord'
+import XYCoord from '../common/XYCoord'
+import DesignState, { INITIAL_DESIGN_STATE } from '../design/DesignState'
+import SelectionState, { INITIAL_SELECTION_STATE } from '../selection/SelectionState'
 
 export const INITIAL_DRAG_DROP_STATE: DragDropState = {
-  status: 'inactive',
+  draggingState: {
+    status: 'inactive',
+  },
+  designState: INITIAL_DESIGN_STATE,
+  selectionState: INITIAL_SELECTION_STATE,
 }
 
-interface InactiveState {
+interface Inactive {
   status: 'inactive'
 }
 
-interface DraggingState {
+interface Dragging {
   status: 'dragging'
   draggingElementId: string
   initialElementOffset: XYCoord
   initialPointerOffset: XYCoord
   dropEffect: 'move' | 'copy'
-  targetPointerOffset: XYCoord | undefined
+  currentPointerOffset: XYCoord
 }
 
-interface DroppedState {
-  status: 'dropped'
-  draggingElementId: string
-  initialElementOffset: XYCoord
-  initialPointerOffset: XYCoord
-  dropPointerOffset: XYCoord
-}
-
-type DragDropState = InactiveState | DraggingState | DroppedState
+type DragDropState = Readonly<{
+  draggingState: Inactive | Dragging
+  designState: DesignState
+  selectionState: SelectionState
+}>
 
 export default DragDropState

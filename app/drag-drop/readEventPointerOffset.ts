@@ -1,4 +1,4 @@
-import XYCoord from '../design/XYCoord'
+import XYCoord from '../common/XYCoord'
 
 export default function readEventPointerOffset(e: DragEvent): XYCoord {
   const {
