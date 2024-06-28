@@ -7,6 +7,7 @@ import OverlayLayer from './OverlayLayer'
 import DesignProvider from './design/DesignProvider'
 import DragDropProvider from './drag-drop/DragDropProvider'
 import SelectionProvider from './selection/SelectionProvider'
+import BoundingBoxes from './BoundingBoxes'
 
 export function Editor() {
   return (
@@ -16,6 +17,7 @@ export function Editor() {
           <div className={styles.Editor}>
             <Frame />
             <OverlayLayer>
+              <BoundingBoxes />
               <Menu />
             </OverlayLayer>
           </div>
