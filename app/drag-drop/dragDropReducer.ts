@@ -6,9 +6,10 @@ import DragDropAction, {
   UpdateSelectionStateAction,
 } from './DragDropAction'
 import DragDropState from './DragDropState'
-import { selectElementsUnderPointer } from '../design/selectors'
 import { selectSelectedElementsUnderPointer } from '../selection/selectors'
-import XYCoord from '../common/XYCoord'
+import { selectElementsUnderPointer } from '../design/selectors'
+
+const DRAG_THRESHOLD = 5
 
 function applyUpdateDesignState(state: DragDropState, { payload }: UpdateDesignStateAction): DragDropState {
   const { designState } = payload
@@ -27,54 +28,59 @@ function applyUpdateSelectionState(state: DragDropState, { payload }: UpdateSele
 }
 
 function applyMouseDown(state: DragDropState, { payload }: MouseDownAction): DragDropState {
-  const { pointerOffset } = payload
+  const { target, pointerOffset } = payload
+  const { selectionState, designState } = state
 
-  const { designState, selectionState } = state
-  let [clickedSelection] = selectSelectedElementsUnderPointer(selectionState, pointerOffset)
-  if (clickedSelection === undefined) {
-    // Find element which was clicked
-    const [clickedElement] = selectElementsUnderPointer(designState, pointerOffset)
-    if (clickedElement === undefined) {
-      // Nothing dragged. No-op.
-      // TODO: Support click-and-drag to multi-select
-      return state
-    }
+  // TODO: Place dragging into a pending state to start
+  const { targetType } = target
+  if (targetType === 'grip') {
+    const { elementId, gripPosition } = target
 
-    clickedSelection = clickedElement
-  }
-  const { elementId: draggingElementId, layout: elementLayout } = clickedSelection
-
-  const elementPosition: XYCoord = {
-    x: elementLayout.left,
-    y: elementLayout.top,
+    return produce(state, (draft) => {
+      draft.draggingState = {
+        status: 'pending-grip-drag',
+        elementId,
+        gripPosition,
+        initialPointerOffset: pointerOffset,
+      }
+    })
   }
 
-  const relativePointerOffset: XYCoord = {
-    x: pointerOffset.x - elementPosition.x,
-    y: pointerOffset.y - elementPosition.y,
+  if (targetType !== 'frame') {
+    throw new Error(`Unknown target type: ${targetType}`)
   }
 
-  const currentPointerOffset: XYCoord = {
-    x: pointerOffset.x,
-    y: pointerOffset.y,
+  const [clickedSelection] = selectSelectedElementsUnderPointer(selectionState, pointerOffset)
+  if (clickedSelection !== undefined) {
+    const { elementId } = clickedSelection
+    return produce(state, (draft) => {
+      draft.draggingState = {
+        status: 'pending-element-drag',
+        elementId,
+        initialPointerOffset: pointerOffset,
+      }
+    })
   }
 
-  // Move currently selected element
-  return produce(state, (draft) => {
-    draft.draggingState = {
-      status: 'dragging',
-      draggingElementId,
-      initialElementOffset: elementPosition,
-      initialPointerOffset: relativePointerOffset,
-      dropEffect: 'move',
-      currentPointerOffset,
-    }
-  })
+  const [clickedElement] = selectElementsUnderPointer(designState, pointerOffset)
+  if (clickedElement !== undefined) {
+    const { elementId } = clickedElement
+    return produce(state, (draft) => {
+      draft.draggingState = {
+        status: 'pending-element-drag',
+        elementId,
+        initialPointerOffset: pointerOffset,
+      }
+    })
+  }
+
+  // No-op
+  return state
 }
 
 function applyMouseUp(state: DragDropState): DragDropState {
   const { status } = state.draggingState
-  if (status !== 'dragging') {
+  if (status === 'inactive') {
     // No-op
     return state
   }
@@ -97,24 +103,63 @@ function applyMouseMove(state: DragDropState, { payload }: MouseMoveAction): Dra
   const { pointerOffset } = payload
 
   const { status } = state.draggingState
-  if (status !== 'dragging') {
-    // No-op
-    return state
+  if (status === 'pending-element-drag') {
+    const { initialPointerOffset } = state.draggingState
+    const deltaX = pointerOffset.x - initialPointerOffset.x
+    const deltaY = pointerOffset.y - initialPointerOffset.y
+    const netDelta = Math.sqrt(deltaX ** 2 + deltaY ** 2)
+    if (netDelta < DRAG_THRESHOLD) {
+      // No-op. Drag threshold has not been reached.
+      return state
+    }
+
+    // Drag threshold has been reached. Transition to a dragging state.
+    const { elementId } = state.draggingState
+    return produce(state, (draft) => {
+      draft.draggingState = {
+        status: 'dragging-element',
+        elementId,
+        dropEffect: 'move',
+        initialPointerOffset,
+        currentPointerOffset: pointerOffset,
+      }
+    })
+  }
+
+  if (status === 'pending-grip-drag') {
+    const { initialPointerOffset } = state.draggingState
+    const deltaX = pointerOffset.x - initialPointerOffset.x
+    const deltaY = pointerOffset.y - initialPointerOffset.y
+    const netDelta = Math.sqrt(deltaX ** 2 + deltaY ** 2)
+    if (netDelta < DRAG_THRESHOLD) {
+      // No-op. Drag threshold has not been reached.
+      return state
+    }
+
+    // Drag threshold has been reached. Transition to a dragging state.
+    const { elementId, gripPosition } = state.draggingState
+    return produce(state, (draft) => {
+      draft.draggingState = {
+        status: 'dragging-grip',
+        elementId,
+        gripPosition,
+        initialPointerOffset,
+        currentPointerOffset: pointerOffset,
+      }
+    })
   }
 
   return produce(state, (draft) => {
-    if (draft.draggingState.status !== 'dragging') {
-      // No-op
-      return
+    const { status } = draft.draggingState
+    if (status === 'dragging-element' || status === 'dragging-grip') {
+      draft.draggingState.currentPointerOffset = pointerOffset
     }
-
-    draft.draggingState.currentPointerOffset = pointerOffset
   })
 }
 
 function applyClick(state: DragDropState): DragDropState {
   const { status } = state.draggingState
-  if (status !== 'dragging') {
+  if (status === 'inactive') {
     // No-op
     return state
   }
@@ -127,6 +172,11 @@ function applyClick(state: DragDropState): DragDropState {
 
 export default function dragDropReducer(state: DragDropState, action: DragDropAction): DragDropState {
   const { type: actionType } = action
+
+  if (actionType !== 'dragDrop/mouseMove') {
+    console.log(`[dragDropReducer] actionType:`, actionType)
+  }
+
   switch (actionType) {
     case 'dragDrop/updateDesignState':
       return applyUpdateDesignState(state, action)

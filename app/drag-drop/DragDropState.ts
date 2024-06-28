@@ -14,17 +14,37 @@ interface Inactive {
   status: 'inactive'
 }
 
-interface Dragging {
-  status: 'dragging'
-  draggingElementId: string
-  initialElementOffset: XYCoord
+interface PendingElementDrag {
+  status: 'pending-element-drag'
+  elementId: string
   initialPointerOffset: XYCoord
+}
+
+interface PendingGripDrag {
+  status: 'pending-grip-drag'
+  elementId: string
+  gripPosition: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+  initialPointerOffset: XYCoord
+}
+
+interface DraggingElement {
+  status: 'dragging-element'
+  elementId: string
   dropEffect: 'move' | 'copy'
+  initialPointerOffset: XYCoord
+  currentPointerOffset: XYCoord
+}
+
+interface DraggingGrip {
+  status: 'dragging-grip'
+  elementId: string
+  gripPosition: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+  initialPointerOffset: XYCoord
   currentPointerOffset: XYCoord
 }
 
 type DragDropState = Readonly<{
-  draggingState: Inactive | Dragging
+  draggingState: Inactive | PendingElementDrag | PendingGripDrag | DraggingElement | DraggingGrip
   designState: DesignState
   selectionState: SelectionState
 }>

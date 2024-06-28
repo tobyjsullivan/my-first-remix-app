@@ -1,7 +1,8 @@
 import { produce } from 'immer'
 import { v4 as uuid } from 'uuid'
-import DesignAction, { AppendElementAction, CloneElementAction, MoveElementAction } from './DesignAction'
+import DesignAction, { AppendElementAction, ApplyElementTransactionAction, CloneElementAction } from './DesignAction'
 import DesignState from './DesignState'
+import { applyElementTransaction } from './transaction'
 
 function applyAppendElement(state: DesignState, { payload }: AppendElementAction): DesignState {
   const { elementType, layout } = payload
@@ -17,21 +18,25 @@ function applyAppendElement(state: DesignState, { payload }: AppendElementAction
   })
 }
 
-function applyMoveElement(state: DesignState, { payload }: MoveElementAction): DesignState {
-  const { elementId, position } = payload
+function applyElementTransactionAction(state: DesignState, { payload }: ApplyElementTransactionAction): DesignState {
+  const { elementId, transaction } = payload
 
   return produce(state, (draft) => {
-    draft.elements
-      .filter(({ elementId: candidateId }) => candidateId === elementId)
-      .forEach((element) => {
-        element.layout.top = position.y
-        element.layout.left = position.x
-      })
+    const idx = draft.elements.findIndex(({ elementId: candidateId }) => candidateId === elementId)
+    if (idx === -1) {
+      return
+    }
+    const element = draft.elements[idx]
+    if (element === undefined) {
+      throw new Error(`Element is undefined. (${idx})`)
+    }
+
+    draft.elements[idx] = applyElementTransaction(element, transaction)
   })
 }
 
 function applyCloneElement(state: DesignState, { payload }: CloneElementAction): DesignState {
-  const { sourceElementId, position } = payload
+  const { sourceElementId, transaction } = payload
 
   const elementId = uuid()
 
@@ -40,11 +45,13 @@ function applyCloneElement(state: DesignState, { payload }: CloneElementAction):
     throw new Error(`Cannot find clone source element. (${sourceElementId})`)
   }
 
-  const element = produce(sourceElement, (draft) => {
-    draft.elementId = elementId
-    draft.layout.left = position.x
-    draft.layout.top = position.y
-  })
+  const element = applyElementTransaction(
+    {
+      ...sourceElement,
+      elementId,
+    },
+    transaction
+  )
 
   return produce(state, (draft) => {
     draft.elements.push(element)
@@ -56,8 +63,8 @@ export default function designReducer(state: DesignState, action: DesignAction):
   switch (actionType) {
     case 'design/appendElement':
       return applyAppendElement(state, action)
-    case 'design/moveElement':
-      return applyMoveElement(state, action)
+    case 'design/applyElementTransaction':
+      return applyElementTransactionAction(state, action)
     case 'design/cloneElement':
       return applyCloneElement(state, action)
     default:

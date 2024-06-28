@@ -16,9 +16,22 @@ export interface UpdateSelectionStateAction {
   }
 }
 
+interface FrameEventTarget {
+  targetType: 'frame'
+}
+
+interface GripEventTarget {
+  targetType: 'grip'
+  elementId: string
+  gripPosition: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+}
+
+export type EventTarget = FrameEventTarget | GripEventTarget
+
 export interface MouseDownAction {
   type: 'dragDrop/mouseDown'
   payload: {
+    target: EventTarget
     pointerOffset: XYCoord
   }
 }

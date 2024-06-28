@@ -1,5 +1,5 @@
-import XYCoord from '../common/XYCoord'
 import { ElementLayout } from './DesignState'
+import { ElementTransaction } from './transaction'
 
 export interface AppendElementAction {
   type: 'design/appendElement'
@@ -9,11 +9,11 @@ export interface AppendElementAction {
   }
 }
 
-export interface MoveElementAction {
-  type: 'design/moveElement'
+export interface ApplyElementTransactionAction {
+  type: 'design/applyElementTransaction'
   payload: {
     elementId: string
-    position: XYCoord
+    transaction: ElementTransaction
   }
 }
 
@@ -21,10 +21,10 @@ export interface CloneElementAction {
   type: 'design/cloneElement'
   payload: {
     sourceElementId: string
-    position: XYCoord
+    transaction: ElementTransaction
   }
 }
 
-type DesignAction = AppendElementAction | MoveElementAction | CloneElementAction
+type DesignAction = AppendElementAction | ApplyElementTransactionAction | CloneElementAction
 
 export default DesignAction

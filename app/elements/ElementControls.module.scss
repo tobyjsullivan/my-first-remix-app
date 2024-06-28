@@ -5,3 +5,51 @@
   // Style
   outline: 2px solid #0000ff;
 }
+
+.Grip {
+  // Box
+  position: absolute;
+  width: 30px;
+  height: 30px;
+
+  // Layout
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  // Interaction
+  cursor: nwse-resize;
+
+  .icon {
+    // Box
+    width: 18px;
+    height: 18px;
+
+    // Style
+    background-color: #fff;
+    border: 1px solid #555;
+    border-radius: 4px;
+  }
+
+  &.left {
+    left: -15px;
+  }
+
+  &.right {
+    right: -15px;
+  }
+
+  &.top {
+    top: -15px;
+  }
+
+  &.bottom {
+    bottom: -15px;
+  }
+
+  &.top.right,
+  &.bottom.left {
+    // Interaction
+    cursor: nesw-resize;
+  }
+}

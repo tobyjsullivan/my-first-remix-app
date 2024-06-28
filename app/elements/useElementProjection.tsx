@@ -2,31 +2,30 @@ import { selectElementById } from '../design/selectors'
 import useDesignState from '../design/useDesignState'
 import { DesignElement } from '../design/DesignState'
 import useDragDropState from '../drag-drop/useDragDropState'
-import { selectDraggingState } from '../drag-drop/selectors'
-import { produce } from 'immer'
+import { selectElementDraggingState, selectGripDraggingState } from '../drag-drop/selectors'
+import { applyElementTransaction } from '../design/transaction'
 
 export default function useElementProjection(elementId: string): DesignElement | undefined {
   const designState = useDesignState()
   const dragDropState = useDragDropState()
 
-  const draggingState = selectDraggingState(dragDropState)
+  const elementDrag = selectElementDraggingState(dragDropState, elementId)
+  const gripDrag = selectGripDraggingState(dragDropState, elementId)
 
   const element = selectElementById(designState, elementId)
   if (element === undefined) {
     return undefined
   }
 
-  if (!draggingState.isDragging || draggingState.elementId !== elementId) {
-    return element
+  if (elementDrag.isDraggingElement) {
+    const { transaction } = elementDrag
+    return applyElementTransaction(element, transaction)
   }
 
-  const { initialPointerOffset, initialElementOffset, currentPointerOffset } = draggingState
+  if (gripDrag.isDraggingGrip) {
+    const { transaction } = gripDrag
+    return applyElementTransaction(element, transaction)
+  }
 
-  const pointerDeltaX = currentPointerOffset.x - (initialElementOffset.x + initialPointerOffset.x)
-  const pointerDeltaY = currentPointerOffset.y - (initialElementOffset.y + initialPointerOffset.y)
-
-  return produce(element, (draft) => {
-    draft.layout.left += pointerDeltaX
-    draft.layout.top += pointerDeltaY
-  })
+  return element
 }
