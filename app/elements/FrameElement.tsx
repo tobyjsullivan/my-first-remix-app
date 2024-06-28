@@ -1,6 +1,5 @@
 import React from 'react'
 import XYCoord from '../common/XYCoord'
-import useDrag from '../drag-drop/useDrag'
 
 import styles from './FrameElement.module.scss'
 import classNames from 'classnames'
@@ -16,19 +15,10 @@ interface DivElementProps {
 function DivElement({ elementId, position }: DivElementProps) {
   const selectionState = useSelectionState()
 
-  const [dragStartRef] = useDrag(elementId, {})
-
   const isSelected = isElementSelected(selectionState, elementId)
 
   const { y: top, x: left } = position
-  return (
-    <div
-      ref={dragStartRef}
-      className={classNames(styles.DivElement)}
-      style={{ top, left }}
-      data-selected={isSelected}
-    ></div>
-  )
+  return <div className={classNames(styles.DivElement)} style={{ top, left }} data-selected={isSelected}></div>
 }
 
 interface Props {

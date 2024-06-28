@@ -1,4 +1,4 @@
-import XYCoord from './XYCoord'
+import XYCoord from '../common/XYCoord'
 
 export interface AppendElementAction {
   type: 'design/appendElement'
