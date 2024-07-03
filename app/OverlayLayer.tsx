@@ -61,15 +61,9 @@ export default function OverlayLayer({ children: children }: Props) {
     const pointerPosition = readPointerPosition(e)
 
     if (gripDrag.isDraggingGrip) {
-      const { elementId, transaction: elementTransaction } = gripDrag
+      const { transform } = gripDrag
 
-      designDispatch({
-        type: 'design/applyElementTransaction',
-        payload: {
-          elementId,
-          transaction: elementTransaction,
-        },
-      })
+      designDispatch({ type: 'design/applyTransform', payload: { steps: transform.getSteps() } })
 
       return
     }
@@ -77,32 +71,14 @@ export default function OverlayLayer({ children: children }: Props) {
     if (elementDrag.isDraggingElement) {
       e.stopPropagation()
 
-      const { transaction: elementTransaction } = elementDrag
+      const { transform } = elementDrag
 
       const draggingElement = selectElementById(designState, elementDrag.elementId)
       if (draggingElement === undefined) {
         throw new Error(`Could not find element in design. (${elementDrag.elementId})`)
       }
 
-      if (elementDrag.dropEffect === 'move') {
-        designDispatch({
-          type: 'design/applyElementTransaction',
-          payload: {
-            elementId: elementDrag.elementId,
-            transaction: elementTransaction,
-          },
-        })
-      } else if (elementDrag.dropEffect === 'copy') {
-        designDispatch({
-          type: 'design/cloneElement',
-          payload: {
-            sourceElementId: elementDrag.elementId,
-            transaction: elementTransaction,
-          },
-        })
-      } else {
-        throw new Error(`Unknown drop effect: ${elementDrag.dropEffect}`)
-      }
+      designDispatch({ type: 'design/applyTransform', payload: { steps: transform.getSteps() } })
 
       return
     }

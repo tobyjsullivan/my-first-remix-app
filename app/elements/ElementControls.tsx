@@ -1,5 +1,4 @@
 import classNames from 'classnames'
-import useElementProjection from './useElementProjection'
 import { ElementLayout } from '../design/DesignState'
 
 import styles from './ElementControls.module.scss'
@@ -7,6 +6,8 @@ import React from 'react'
 import readEventPointerOffset from '../drag-drop/readEventPointerOffset'
 import useDragDropDispatch from '../drag-drop/useDragDropDispatch'
 import { EventTarget } from '../drag-drop/DragDropAction'
+import useDraggingProjection from './useDraggingProjection'
+import { selectElementById } from '../design/selectors'
 
 interface GripProps {
   elementId: string
@@ -85,7 +86,9 @@ interface Props {
 }
 
 export default function ElementControls({ elementId }: Props) {
-  const element = useElementProjection(elementId)
+  const designState = useDraggingProjection()
+
+  const element = selectElementById(designState, elementId)
   if (element === undefined) {
     return null
   }

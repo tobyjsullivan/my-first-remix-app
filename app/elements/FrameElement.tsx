@@ -3,10 +3,11 @@ import React from 'react'
 import classNames from 'classnames'
 import useSelectionState from '../selection/useSelectionState'
 import { isElementSelected } from '../selection/selectors'
-import useElementProjection from './useElementProjection'
 import { ElementLayout } from '../design/DesignState'
 
 import styles from './FrameElement.module.scss'
+import useDraggingProjection from './useDraggingProjection'
+import { selectElementById } from '../design/selectors'
 
 interface DivElementProps {
   elementId: string
@@ -33,7 +34,9 @@ interface Props {
 }
 
 export default function FrameElement({ elementId }: Props) {
-  const element = useElementProjection(elementId)
+  const designState = useDraggingProjection()
+
+  const element = selectElementById(designState, elementId)
   if (element === undefined) {
     return null
   }

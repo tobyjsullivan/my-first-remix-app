@@ -1,5 +1,5 @@
 import XYCoord from '../common/XYCoord'
-import { ElementTransaction } from '../design/transaction'
+import Transform, { ResizeHeightStep, ResizeWidthStep, TranslateXStep, TranslateYStep } from '../design/Transform'
 
 import DragDropState from './DragDropState'
 
@@ -21,18 +21,19 @@ interface DraggingElement {
   dropEffect: 'move' | 'copy'
   initialPointerOffset: XYCoord
   currentPointerOffset: XYCoord
-  transaction: ElementTransaction
+  transform: Transform
 }
 
 export type ElementDraggingState = NotDraggingElement | DraggingElement
 
 export function selectElementDraggingState(state: DragDropState, elementIdFilter?: string): ElementDraggingState {
-  const { status } = state.draggingState
+  const { draggingState, designState } = state
+  const { status } = draggingState
   if (status !== 'dragging-element') {
     return { isDraggingElement: false }
   }
 
-  const { dropEffect, elementId, initialPointerOffset, currentPointerOffset } = state.draggingState
+  const { dropEffect, elementId, initialPointerOffset, currentPointerOffset } = draggingState
   if (elementIdFilter !== undefined && elementIdFilter !== elementId) {
     return { isDraggingElement: false }
   }
@@ -40,10 +41,9 @@ export function selectElementDraggingState(state: DragDropState, elementIdFilter
   const deltaX = currentPointerOffset.x - initialPointerOffset.x
   const deltaY = currentPointerOffset.y - initialPointerOffset.y
 
-  const transaction: ElementTransaction = {
-    translateX: deltaX,
-    translateY: deltaY,
-  }
+  const transform = new Transform(designState)
+    .step(new TranslateXStep(elementId, deltaX))
+    .step(new TranslateYStep(elementId, deltaY))
 
   return {
     isDraggingElement: true,
@@ -51,7 +51,7 @@ export function selectElementDraggingState(state: DragDropState, elementIdFilter
     elementId,
     initialPointerOffset,
     currentPointerOffset,
-    transaction,
+    transform,
   }
 }
 
@@ -65,18 +65,19 @@ interface DraggingGrip {
   gripPosition: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
   initialPointerOffset: XYCoord
   currentPointerOffset: XYCoord
-  transaction: ElementTransaction
+  transform: Transform
 }
 
 export type GripDraggingState = NotDraggingGrip | DraggingGrip
 
 export function selectGripDraggingState(state: DragDropState, elementIdFilter?: string): GripDraggingState {
-  const { status } = state.draggingState
+  const { draggingState, designState } = state
+  const { status } = draggingState
   if (status !== 'dragging-grip') {
     return { isDraggingGrip: false }
   }
 
-  const { elementId, gripPosition, initialPointerOffset, currentPointerOffset } = state.draggingState
+  const { elementId, gripPosition, initialPointerOffset, currentPointerOffset } = draggingState
   if (elementIdFilter !== undefined && elementIdFilter !== elementId) {
     return { isDraggingGrip: false }
   }
@@ -84,38 +85,35 @@ export function selectGripDraggingState(state: DragDropState, elementIdFilter?: 
   const deltaX = currentPointerOffset.x - initialPointerOffset.x
   const deltaY = currentPointerOffset.y - initialPointerOffset.y
 
-  let transaction: ElementTransaction
+  const transform = new Transform(designState)
+
   switch (gripPosition) {
     case 'top-left': {
-      transaction = {
-        translateX: deltaX,
-        translateY: deltaY,
-        resizeWidth: -deltaX,
-        resizeHeight: -deltaY,
-      }
+      transform
+        .step(new TranslateXStep(elementId, deltaX))
+        .step(new TranslateYStep(elementId, deltaY))
+        .step(new ResizeWidthStep(elementId, -deltaX))
+        .step(new ResizeHeightStep(elementId, -deltaY))
       break
     }
     case 'top-right': {
-      transaction = {
-        translateY: deltaY,
-        resizeWidth: deltaX,
-        resizeHeight: -deltaY,
-      }
+      transform
+        .step(new TranslateYStep(elementId, deltaY))
+        .step(new ResizeWidthStep(elementId, deltaX))
+        .step(new ResizeHeightStep(elementId, -deltaY))
       break
     }
     case 'bottom-left': {
-      transaction = {
-        translateX: deltaX,
-        resizeWidth: -deltaX,
-        resizeHeight: deltaY,
-      }
+      transform
+        .step(new TranslateXStep(elementId, deltaX))
+        .step(new ResizeWidthStep(elementId, -deltaX))
+        .step(new ResizeHeightStep(elementId, deltaY))
       break
     }
     case 'bottom-right': {
-      transaction = {
-        resizeWidth: deltaX,
-        resizeHeight: deltaY,
-      }
+      transform //
+        .step(new ResizeWidthStep(elementId, deltaX))
+        .step(new ResizeHeightStep(elementId, deltaY))
       break
     }
     default:
@@ -128,6 +126,6 @@ export function selectGripDraggingState(state: DragDropState, elementIdFilter?: 
     gripPosition,
     initialPointerOffset,
     currentPointerOffset,
-    transaction,
+    transform,
   }
 }

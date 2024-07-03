@@ -2,6 +2,7 @@ import classNames from 'classnames'
 import styles from './Menu.module.scss'
 
 import useDesignDispatch from './design/useDesignDispatch'
+import { AppendElementStep } from './design/Transform'
 
 interface MenuItemProps {
   label: string
@@ -24,15 +25,16 @@ export default function Menu() {
     const y = Math.round(Math.random() * 400)
 
     dispatch({
-      type: 'design/appendElement',
+      type: 'design/applyTransform',
       payload: {
-        elementType: 'div',
-        layout: {
-          left: x,
-          top: y,
-          width: 200,
-          height: 200,
-        },
+        steps: [
+          new AppendElementStep('div', {
+            left: x,
+            top: y,
+            width: 200,
+            height: 200,
+          }),
+        ],
       },
     })
   }

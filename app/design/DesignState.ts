@@ -9,9 +9,11 @@ export type ElementLayout = Readonly<{
   height: number
 }>
 
+export type ElementType = 'div'
+
 export type DesignElement = Readonly<{
   elementId: string
-  elementType: 'div'
+  elementType: ElementType
   layout: ElementLayout
 }>
 

@@ -1,30 +1,12 @@
-import { ElementLayout } from './DesignState'
-import { ElementTransaction } from './transaction'
+import { Step } from './Transform'
 
-export interface AppendElementAction {
-  type: 'design/appendElement'
+export interface ApplyTransformAction {
+  type: 'design/applyTransform'
   payload: {
-    elementType: 'div'
-    layout: ElementLayout
+    steps: Step[]
   }
 }
 
-export interface ApplyElementTransactionAction {
-  type: 'design/applyElementTransaction'
-  payload: {
-    elementId: string
-    transaction: ElementTransaction
-  }
-}
-
-export interface CloneElementAction {
-  type: 'design/cloneElement'
-  payload: {
-    sourceElementId: string
-    transaction: ElementTransaction
-  }
-}
-
-type DesignAction = AppendElementAction | ApplyElementTransactionAction | CloneElementAction
+type DesignAction = ApplyTransformAction
 
 export default DesignAction
