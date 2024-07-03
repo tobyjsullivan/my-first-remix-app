@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react'
 import styles from './OverlayLayer.module.scss'
-import useSelectionDispatch from './selection/useSelectionDispatch'
 import useDragDropDispatch from './drag-drop/useDragDropDispatch'
 import useDragDropState from './drag-drop/useDragDropState'
 import { selectElementDraggingState, selectGripDraggingState } from './drag-drop/selectors'
@@ -24,7 +23,6 @@ export default function OverlayLayer({ children: children }: Props) {
   const designState = useDesignState()
   const dragDropDispatch = useDragDropDispatch()
   const dragDropState = useDragDropState()
-  const selectionDispatch = useSelectionDispatch()
 
   const elementDrag = selectElementDraggingState(dragDropState)
   const gripDrag = selectGripDraggingState(dragDropState)
@@ -33,6 +31,15 @@ export default function OverlayLayer({ children: children }: Props) {
     // Prevent browser selection side-effects
     e.preventDefault()
     e.stopPropagation()
+
+    designDispatch({
+      type: 'design/mouseDown',
+      payload: {
+        event: {
+          pointerOffset: readPointerPosition(e),
+        },
+      },
+    })
 
     dragDropDispatch({
       type: 'dragDrop/mouseDown',
@@ -43,6 +50,15 @@ export default function OverlayLayer({ children: children }: Props) {
     })
   }
   const handleMouseMove = (e: React.MouseEvent) => {
+    // designDispatch({
+    //   type: 'design/mouseMove',
+    //   payload: {
+    //     event: {
+    //       pointerOffset: readPointerPosition(e),
+    //     },
+    //   },
+    // })
+
     dragDropDispatch({
       type: 'dragDrop/mouseMove',
       payload: {
@@ -51,6 +67,14 @@ export default function OverlayLayer({ children: children }: Props) {
     })
   }
   const handleMouseUp = (e: React.MouseEvent) => {
+    // designDispatch({
+    //   type: 'design/mouseUp',
+    //   payload: {
+    //     event: {
+    //       pointerOffset: readPointerPosition(e),
+    //     },
+    //   },
+    // })
     dragDropDispatch({
       type: 'dragDrop/mouseUp',
       payload: {
@@ -84,7 +108,6 @@ export default function OverlayLayer({ children: children }: Props) {
     }
 
     // No drag was happening. Indicate a click.
-    selectionDispatch({ type: 'selection/click', payload: { offset: pointerPosition } })
     dragDropDispatch({ type: 'dragDrop/click', payload: { pointerOffset: pointerPosition } })
   }
   const handleMouseLeave = () => {
@@ -100,7 +123,7 @@ export default function OverlayLayer({ children: children }: Props) {
       const { key, shiftKey, metaKey: nativeMetaKey, ctrlKey: nativeCtrlKey } = e
 
       const metaKey = nativeMetaKey || nativeCtrlKey
-      selectionDispatch({ type: 'selection/keyDown', payload: { key, shiftKey, metaKey } })
+      designDispatch({ type: 'design/keyDown', payload: { key, shiftKey, metaKey } })
     }
 
     document.addEventListener('keydown', handleKeyDown)
@@ -108,7 +131,7 @@ export default function OverlayLayer({ children: children }: Props) {
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [selectionDispatch])
+  }, [designDispatch])
 
   return (
     <div

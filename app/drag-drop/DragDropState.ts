@@ -1,13 +1,11 @@
 import XYCoord from '../common/XYCoord'
 import DesignState, { INITIAL_DESIGN_STATE } from '../design/DesignState'
-import SelectionState, { INITIAL_SELECTION_STATE } from '../selection/SelectionState'
 
 export const INITIAL_DRAG_DROP_STATE: DragDropState = {
   draggingState: {
     status: 'inactive',
   },
   designState: INITIAL_DESIGN_STATE,
-  selectionState: INITIAL_SELECTION_STATE,
 }
 
 interface Inactive {
@@ -46,7 +44,6 @@ interface DraggingGrip {
 type DragDropState = Readonly<{
   draggingState: Inactive | PendingElementDrag | PendingGripDrag | DraggingElement | DraggingGrip
   designState: DesignState
-  selectionState: SelectionState
 }>
 
 export default DragDropState

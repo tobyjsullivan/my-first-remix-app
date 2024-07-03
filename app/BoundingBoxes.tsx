@@ -1,11 +1,11 @@
+import { selectSelectedElements } from './design/selectors'
+import useDesignState from './design/useDesignState'
 import ElementControls from './elements/ElementControls'
-import { selectSelectedElements } from './selection/selectors'
-import useSelectionState from './selection/useSelectionState'
 
 export default function BoundingBoxes() {
-  const selectionState = useSelectionState()
+  const designState = useDesignState()
 
-  const selectedElements = selectSelectedElements(selectionState)
+  const selectedElements = selectSelectedElements(designState)
 
   const controls = selectedElements.map(({ elementId }) => <ElementControls key={elementId} elementId={elementId} />)
 

@@ -24,3 +24,33 @@ export function selectElementsUnderPointer(state: DesignState, pointerOffset: XY
   const { elements } = state
   return elements.filter((element) => elementOverlapsPoint(element, pointerOffset))
 }
+
+export function isElementSelected(state: DesignState, elementId: string): boolean {
+  return state.selection.ranges.some(({ elementId: rangeElementId }) => rangeElementId === elementId)
+}
+
+export function selectSelectedElements(state: DesignState): DesignElement[] {
+  const {
+    elements,
+    selection: { ranges },
+  } = state
+  if (ranges.length === 0) {
+    return []
+  }
+
+  const selectedElementIds = ranges.map(({ elementId }) => elementId)
+
+  return elements.filter(({ elementId }) => selectedElementIds.includes(elementId))
+}
+
+export function selectSelectedElementsUnderPointer(state: DesignState, pointerOffset: XYCoord): DesignElement[] {
+  const { ranges } = state.selection
+  const selectedElementIds = ranges.map(({ elementId }) => elementId)
+  if (selectedElementIds.length === 0) {
+    return []
+  }
+
+  const intersectingElements = selectElementsUnderPointer(state, pointerOffset)
+
+  return intersectingElements.filter(({ elementId }) => selectedElementIds.includes(elementId))
+}

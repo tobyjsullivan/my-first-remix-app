@@ -1,13 +1,12 @@
 import React from 'react'
 
 import classNames from 'classnames'
-import useSelectionState from '../selection/useSelectionState'
-import { isElementSelected } from '../selection/selectors'
 import { ElementLayout } from '../design/DesignState'
 
 import styles from './FrameElement.module.scss'
 import useDraggingProjection from './useDraggingProjection'
-import { selectElementById } from '../design/selectors'
+import { isElementSelected, selectElementById } from '../design/selectors'
+import useDesignState from '../design/useDesignState'
 
 interface DivElementProps {
   elementId: string
@@ -15,9 +14,9 @@ interface DivElementProps {
 }
 
 function DivElement({ elementId, layout }: DivElementProps) {
-  const selectionState = useSelectionState()
+  const designState = useDesignState()
 
-  const isSelected = isElementSelected(selectionState, elementId)
+  const isSelected = isElementSelected(designState, elementId)
 
   const { left, top, width, height } = layout
   return (

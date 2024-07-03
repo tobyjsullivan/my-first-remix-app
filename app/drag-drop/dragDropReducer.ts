@@ -1,13 +1,7 @@
 import { createDraft, produce } from 'immer'
-import DragDropAction, {
-  MouseDownAction,
-  MouseMoveAction,
-  UpdateDesignStateAction,
-  UpdateSelectionStateAction,
-} from './DragDropAction'
+import DragDropAction, { MouseDownAction, MouseMoveAction, UpdateDesignStateAction } from './DragDropAction'
 import DragDropState from './DragDropState'
-import { selectSelectedElementsUnderPointer } from '../selection/selectors'
-import { selectElementsUnderPointer } from '../design/selectors'
+import { selectElementsUnderPointer, selectSelectedElementsUnderPointer } from '../design/selectors'
 
 const DRAG_THRESHOLD = 5
 
@@ -19,17 +13,9 @@ function applyUpdateDesignState(state: DragDropState, { payload }: UpdateDesignS
   })
 }
 
-function applyUpdateSelectionState(state: DragDropState, { payload }: UpdateSelectionStateAction): DragDropState {
-  const { selectionState } = payload
-
-  return produce(state, (draft) => {
-    draft.selectionState = createDraft(selectionState)
-  })
-}
-
 function applyMouseDown(state: DragDropState, { payload }: MouseDownAction): DragDropState {
   const { target, pointerOffset } = payload
-  const { selectionState, designState } = state
+  const { designState } = state
 
   // TODO: Place dragging into a pending state to start
   const { targetType } = target
@@ -50,7 +36,7 @@ function applyMouseDown(state: DragDropState, { payload }: MouseDownAction): Dra
     throw new Error(`Unknown target type: ${targetType}`)
   }
 
-  const [clickedSelection] = selectSelectedElementsUnderPointer(selectionState, pointerOffset)
+  const [clickedSelection] = selectSelectedElementsUnderPointer(designState, pointerOffset)
   if (clickedSelection !== undefined) {
     const { elementId } = clickedSelection
     return produce(state, (draft) => {
@@ -180,8 +166,6 @@ export default function dragDropReducer(state: DragDropState, action: DragDropAc
   switch (actionType) {
     case 'dragDrop/updateDesignState':
       return applyUpdateDesignState(state, action)
-    case 'dragDrop/updateSelectionState':
-      return applyUpdateSelectionState(state, action)
     case 'dragDrop/mouseDown':
       return applyMouseDown(state, action)
     case 'dragDrop/mouseMove':

@@ -1,18 +1,10 @@
 import XYCoord from '../common/XYCoord'
 import DesignState from '../design/DesignState'
-import SelectionState from '../selection/SelectionState'
 
 export interface UpdateDesignStateAction {
   type: 'dragDrop/updateDesignState'
   payload: {
     designState: DesignState
-  }
-}
-
-export interface UpdateSelectionStateAction {
-  type: 'dragDrop/updateSelectionState'
-  payload: {
-    selectionState: SelectionState
   }
 }
 

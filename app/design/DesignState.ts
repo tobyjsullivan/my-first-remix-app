@@ -1,6 +1,17 @@
 export const INITIAL_DESIGN_STATE: DesignState = {
   elements: [],
+  selection: {
+    ranges: [],
+  },
 }
+
+export type SelectionRange = Readonly<{
+  elementId: string
+}>
+
+export type Selection = Readonly<{
+  ranges: readonly SelectionRange[]
+}>
 
 export type ElementLayout = Readonly<{
   top: number
@@ -19,4 +30,5 @@ export type DesignElement = Readonly<{
 
 export default interface DesignState {
   elements: readonly DesignElement[]
+  selection: Selection
 }
