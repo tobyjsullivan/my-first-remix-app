@@ -1,6 +1,6 @@
 import { produce } from 'immer'
+import { v4 as uuid } from 'uuid'
 import DesignState, { ElementLayout, ElementType } from './DesignState'
-import { appendElement } from './mutations'
 import { GripPosition } from './DesignAction'
 import XYCoord from '../common/XYCoord'
 
@@ -12,7 +12,15 @@ export class AppendElementStep implements Step {
   constructor(readonly elementType: ElementType, readonly layout: ElementLayout) {}
 
   apply(state: DesignState): DesignState {
-    return appendElement(state, this.elementType, this.layout)
+    const elementId = uuid()
+
+    return produce(state, (draft) => {
+      draft.elements.push({
+        elementId,
+        elementType: this.elementType,
+        layout: this.layout,
+      })
+    })
   }
 }
 
