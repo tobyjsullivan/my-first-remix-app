@@ -4,6 +4,9 @@ import DesignState, { ElementLayout, ElementType } from './DesignState'
 import { GripPosition } from './DesignAction'
 import XYCoord from '../common/XYCoord'
 
+const MIN_ELEMENT_WIDTH = 15
+const MIN_ELEMENT_HEIGHT = 15
+
 export interface Step {
   apply(state: DesignState): DesignState
 }
@@ -77,6 +80,10 @@ export class ResizeWidthStep implements Step {
       }
 
       element.layout.width += this.delta
+
+      if (element.layout.width < MIN_ELEMENT_WIDTH) {
+        element.layout.width = MIN_ELEMENT_WIDTH
+      }
     })
   }
 }
@@ -96,6 +103,10 @@ export class ResizeHeightStep implements Step {
       }
 
       element.layout.height += this.delta
+
+      if (element.layout.height < MIN_ELEMENT_HEIGHT) {
+        element.layout.height = MIN_ELEMENT_HEIGHT
+      }
     })
   }
 }
