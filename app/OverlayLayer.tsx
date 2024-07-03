@@ -1,12 +1,7 @@
 import React, { useEffect } from 'react'
 import styles from './OverlayLayer.module.scss'
-import useDragDropDispatch from './drag-drop/useDragDropDispatch'
-import useDragDropState from './drag-drop/useDragDropState'
-import { selectElementDraggingState, selectGripDraggingState } from './drag-drop/selectors'
 import useDesignDispatch from './design/useDesignDispatch'
 import XYCoord from './common/XYCoord'
-import useDesignState from './design/useDesignState'
-import { selectElementById } from './design/selectors'
 
 function readPointerPosition(e: React.MouseEvent): XYCoord {
   const { clientX, clientY } = e
@@ -20,12 +15,6 @@ interface Props {
 
 export default function OverlayLayer({ children: children }: Props) {
   const designDispatch = useDesignDispatch()
-  const designState = useDesignState()
-  const dragDropDispatch = useDragDropDispatch()
-  const dragDropState = useDragDropState()
-
-  const elementDrag = selectElementDraggingState(dragDropState)
-  const gripDrag = selectGripDraggingState(dragDropState)
 
   const handleMouseDown = (e: React.MouseEvent) => {
     // Prevent browser selection side-effects
@@ -36,84 +25,32 @@ export default function OverlayLayer({ children: children }: Props) {
       type: 'design/mouseDown',
       payload: {
         event: {
+          target: { targetType: 'frame' },
           pointerOffset: readPointerPosition(e),
         },
       },
     })
-
-    dragDropDispatch({
-      type: 'dragDrop/mouseDown',
-      payload: {
-        target: { targetType: 'frame' },
-        pointerOffset: readPointerPosition(e),
-      },
-    })
   }
   const handleMouseMove = (e: React.MouseEvent) => {
-    // designDispatch({
-    //   type: 'design/mouseMove',
-    //   payload: {
-    //     event: {
-    //       pointerOffset: readPointerPosition(e),
-    //     },
-    //   },
-    // })
-
-    dragDropDispatch({
-      type: 'dragDrop/mouseMove',
+    designDispatch({
+      type: 'design/mouseMove',
       payload: {
-        pointerOffset: readPointerPosition(e),
+        event: {
+          target: { targetType: 'frame' },
+          pointerOffset: readPointerPosition(e),
+        },
       },
     })
   }
   const handleMouseUp = (e: React.MouseEvent) => {
-    // designDispatch({
-    //   type: 'design/mouseUp',
-    //   payload: {
-    //     event: {
-    //       pointerOffset: readPointerPosition(e),
-    //     },
-    //   },
-    // })
-    dragDropDispatch({
-      type: 'dragDrop/mouseUp',
+    designDispatch({
+      type: 'design/mouseUp',
       payload: {
-        pointerOffset: readPointerPosition(e),
+        event: {
+          target: { targetType: 'frame' },
+          pointerOffset: readPointerPosition(e),
+        },
       },
-    })
-
-    const pointerPosition = readPointerPosition(e)
-
-    if (gripDrag.isDraggingGrip) {
-      const { transform } = gripDrag
-
-      designDispatch({ type: 'design/applyTransform', payload: { steps: transform.getSteps() } })
-
-      return
-    }
-
-    if (elementDrag.isDraggingElement) {
-      e.stopPropagation()
-
-      const { transform } = elementDrag
-
-      const draggingElement = selectElementById(designState, elementDrag.elementId)
-      if (draggingElement === undefined) {
-        throw new Error(`Could not find element in design. (${elementDrag.elementId})`)
-      }
-
-      designDispatch({ type: 'design/applyTransform', payload: { steps: transform.getSteps() } })
-
-      return
-    }
-
-    // No drag was happening. Indicate a click.
-    dragDropDispatch({ type: 'dragDrop/click', payload: { pointerOffset: pointerPosition } })
-  }
-  const handleMouseLeave = () => {
-    dragDropDispatch({
-      type: 'dragDrop/mouseLeave',
-      payload: {},
     })
   }
 
@@ -139,7 +76,6 @@ export default function OverlayLayer({ children: children }: Props) {
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseLeave}
     >
       {children}
     </div>

@@ -1,5 +1,7 @@
 import XYCoord from '../common/XYCoord'
+import { GripPosition } from './DesignAction'
 import DesignState, { DesignElement } from './DesignState'
+import Transform, { ResizeHeightStep, ResizeWidthStep, TranslateXStep, TranslateYStep } from './Transform'
 
 export function selectAllElements(state: DesignState): DesignElement[] {
   return [...state.elements]
@@ -53,4 +55,121 @@ export function selectSelectedElementsUnderPointer(state: DesignState, pointerOf
   const intersectingElements = selectElementsUnderPointer(state, pointerOffset)
 
   return intersectingElements.filter(({ elementId }) => selectedElementIds.includes(elementId))
+}
+
+interface NotDraggingElement {
+  isDraggingElement: false
+}
+
+interface DraggingElement {
+  isDraggingElement: true
+  elementId: string
+  dropEffect: 'move' | 'copy'
+  initialPointerOffset: XYCoord
+  currentPointerOffset: XYCoord
+  transform: Transform
+}
+
+export type ElementDraggingState = NotDraggingElement | DraggingElement
+
+export function selectElementDraggingState(state: DesignState, elementIdFilter?: string): ElementDraggingState {
+  const { status } = state.draggingState
+  if (status !== 'dragging-element') {
+    return { isDraggingElement: false }
+  }
+
+  const { dropEffect, elementId, initialPointerOffset, currentPointerOffset } = state.draggingState
+  if (elementIdFilter !== undefined && elementIdFilter !== elementId) {
+    return { isDraggingElement: false }
+  }
+
+  const deltaX = currentPointerOffset.x - initialPointerOffset.x
+  const deltaY = currentPointerOffset.y - initialPointerOffset.y
+
+  const transform = new Transform(state)
+    .step(new TranslateXStep(elementId, deltaX))
+    .step(new TranslateYStep(elementId, deltaY))
+
+  return {
+    isDraggingElement: true,
+    dropEffect,
+    elementId,
+    initialPointerOffset,
+    currentPointerOffset,
+    transform,
+  }
+}
+
+interface NotDraggingGrip {
+  isDraggingGrip: false
+}
+
+interface DraggingGrip {
+  isDraggingGrip: true
+  elementId: string
+  gripPosition: GripPosition
+  initialPointerOffset: XYCoord
+  currentPointerOffset: XYCoord
+  transform: Transform
+}
+
+export type GripDraggingState = NotDraggingGrip | DraggingGrip
+
+export function selectGripDraggingState(state: DesignState, elementIdFilter?: string): GripDraggingState {
+  const { status } = state.draggingState
+  if (status !== 'dragging-grip') {
+    return { isDraggingGrip: false }
+  }
+
+  const { elementId, gripPosition, initialPointerOffset, currentPointerOffset } = state.draggingState
+  if (elementIdFilter !== undefined && elementIdFilter !== elementId) {
+    return { isDraggingGrip: false }
+  }
+
+  const deltaX = currentPointerOffset.x - initialPointerOffset.x
+  const deltaY = currentPointerOffset.y - initialPointerOffset.y
+
+  const transform = new Transform(state)
+
+  switch (gripPosition) {
+    case 'top-left': {
+      transform
+        .step(new TranslateXStep(elementId, deltaX))
+        .step(new TranslateYStep(elementId, deltaY))
+        .step(new ResizeWidthStep(elementId, -deltaX))
+        .step(new ResizeHeightStep(elementId, -deltaY))
+      break
+    }
+    case 'top-right': {
+      transform
+        .step(new TranslateYStep(elementId, deltaY))
+        .step(new ResizeWidthStep(elementId, deltaX))
+        .step(new ResizeHeightStep(elementId, -deltaY))
+      break
+    }
+    case 'bottom-left': {
+      transform
+        .step(new TranslateXStep(elementId, deltaX))
+        .step(new ResizeWidthStep(elementId, -deltaX))
+        .step(new ResizeHeightStep(elementId, deltaY))
+      break
+    }
+    case 'bottom-right': {
+      transform //
+        .step(new ResizeWidthStep(elementId, deltaX))
+        .step(new ResizeHeightStep(elementId, deltaY))
+      break
+    }
+    default:
+      throw new Error(`Unknown grip position: ${gripPosition}`)
+  }
+
+  return {
+    isDraggingGrip: true,
+    elementId,
+    gripPosition,
+    initialPointerOffset,
+    currentPointerOffset,
+    transform,
+  }
 }

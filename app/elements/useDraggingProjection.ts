@@ -1,14 +1,12 @@
 import DesignState from '../design/DesignState'
+import { selectElementDraggingState, selectGripDraggingState } from '../design/selectors'
 import useDesignState from '../design/useDesignState'
-import { selectElementDraggingState, selectGripDraggingState } from '../drag-drop/selectors'
-import useDragDropState from '../drag-drop/useDragDropState'
 
 export default function useDraggingProjection(): DesignState {
   const designState = useDesignState()
-  const dragDropState = useDragDropState()
 
-  const elementDrag = selectElementDraggingState(dragDropState)
-  const gripDrag = selectGripDraggingState(dragDropState)
+  const elementDrag = selectElementDraggingState(designState)
+  const gripDrag = selectGripDraggingState(designState)
 
   if (elementDrag.isDraggingElement) {
     return elementDrag.transform.result

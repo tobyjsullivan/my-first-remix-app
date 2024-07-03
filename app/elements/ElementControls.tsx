@@ -3,11 +3,11 @@ import { ElementLayout } from '../design/DesignState'
 
 import styles from './ElementControls.module.scss'
 import React from 'react'
-import readEventPointerOffset from '../drag-drop/readEventPointerOffset'
-import useDragDropDispatch from '../drag-drop/useDragDropDispatch'
-import { EventTarget } from '../drag-drop/DragDropAction'
+import readEventPointerOffset from './readEventPointerOffset'
 import useDraggingProjection from './useDraggingProjection'
 import { selectElementById } from '../design/selectors'
+import useDesignDispatch from '../design/useDesignDispatch'
+import { EventTarget } from '../design/DesignAction'
 
 interface GripProps {
   elementId: string
@@ -15,7 +15,7 @@ interface GripProps {
 }
 
 function Grip({ elementId, position }: GripProps) {
-  const dragDropDispatch = useDragDropDispatch()
+  const designDispatch = useDesignDispatch()
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -23,7 +23,7 @@ function Grip({ elementId, position }: GripProps) {
     const pointerOffset = readEventPointerOffset(e.nativeEvent)
 
     const target: EventTarget = { targetType: 'grip', elementId, gripPosition: position }
-    dragDropDispatch({ type: 'dragDrop/mouseDown', payload: { target, pointerOffset } })
+    designDispatch({ type: 'design/mouseDown', payload: { event: { target, pointerOffset } } })
   }
 
   const positionClasses = []
