@@ -1,13 +1,7 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import styles from './OverlayLayer.module.scss'
 import useDesignDispatch from './design/useDesignDispatch'
-import XYCoord from './common/XYCoord'
-
-function readPointerPosition(e: React.MouseEvent): XYCoord {
-  const { clientX, clientY } = e
-
-  return { x: clientX, y: clientY }
-}
+import Input from './design/Input'
 
 interface Props {
   children: React.ReactNode
@@ -16,67 +10,21 @@ interface Props {
 export default function OverlayLayer({ children: children }: Props) {
   const designDispatch = useDesignDispatch()
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    // Prevent browser selection side-effects
-    e.preventDefault()
-    e.stopPropagation()
-
-    designDispatch({
-      type: 'design/mouseDown',
-      payload: {
-        event: {
-          target: { targetType: 'frame' },
-          pointerOffset: readPointerPosition(e),
-        },
-      },
-    })
-  }
-  const handleMouseMove = (e: React.MouseEvent) => {
-    designDispatch({
-      type: 'design/mouseMove',
-      payload: {
-        event: {
-          target: { targetType: 'frame' },
-          pointerOffset: readPointerPosition(e),
-        },
-      },
-    })
-  }
-  const handleMouseUp = (e: React.MouseEvent) => {
-    designDispatch({
-      type: 'design/mouseUp',
-      payload: {
-        event: {
-          target: { targetType: 'frame' },
-          pointerOffset: readPointerPosition(e),
-        },
-      },
-    })
-  }
+  const domRef = useRef<HTMLDivElement | null>(null)
 
   // Setup key listener on document
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const { key, shiftKey, metaKey: nativeMetaKey, ctrlKey: nativeCtrlKey } = e
-
-      const metaKey = nativeMetaKey || nativeCtrlKey
-      designDispatch({ type: 'design/keyDown', payload: { key, shiftKey, metaKey } })
+    if (!domRef.current) {
+      return
     }
 
-    document.addEventListener('keydown', handleKeyDown)
+    const input = new Input(domRef.current, designDispatch)
 
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-    }
+    return input.destroy.bind(input)
   }, [designDispatch])
 
   return (
-    <div
-      className={styles.OverlayLayer}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-    >
+    <div className={styles.OverlayLayer} ref={domRef}>
       {children}
     </div>
   )

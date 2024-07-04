@@ -3,7 +3,7 @@ import { ElementLayout } from '../design/DesignState'
 
 import styles from './ElementControls.module.scss'
 import React from 'react'
-import readEventPointerOffset from './readEventPointerOffset'
+import readEventPointerOffset from '../design/readEventPointerOffset'
 import useDraggingProjection from './useDraggingProjection'
 import { selectElementById } from '../design/selectors'
 import useDesignDispatch from '../design/useDesignDispatch'
